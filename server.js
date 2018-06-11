@@ -8,10 +8,10 @@ const app = express()
 const schema = require('./schema')
 
 app.use('/graphql', cors(), bodyParser.json(), graphqlHTTP({
-    schema,
-    graphiql: true
+  schema,
+  graphiql: true
 }))
 
 app.listen(3000, () => {
-    console.log('App is listening on port 3000 ...')
+  console.log('App is listening on port 3000 ...')
 })
