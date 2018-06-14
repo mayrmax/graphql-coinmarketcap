@@ -6,7 +6,7 @@ const {
   GraphQLString,
   GraphQLList,
   GraphQLInt,
-  GraphQLFloat
+  GraphQLFloat,
 } = require('graphql')
 
 const TickerType = new GraphQLObjectType({
@@ -14,62 +14,62 @@ const TickerType = new GraphQLObjectType({
   description: 'a ticker',
   fields: {
     id: {
-      type: GraphQLString,
-      resolve: json => json.id
+      type: GraphQLInt,
+      resolve: json => json.id,
     },
     name: {
       type: GraphQLString,
-      resolve: json => json.name
+      resolve: json => json.name,
     },
     symbol: {
       type: GraphQLString,
-      resolve: json => json.symbol
+      resolve: json => json.symbol,
     },
     rank: {
       type: GraphQLInt,
-      resolve: json => json.rank
+      resolve: json => json.rank,
     },
     priceUSD: {
       type: GraphQLFloat,
-      resolve: json => json.price_usd
+      resolve: json => json.quotes.USD.price,
     },
     priceBTC: {
       type: GraphQLFloat,
-      resolve: json => json.price_btc
+      resolve: json => json.quotes.USD.price,
     },
     dailyVolumeUSD: {
       type: GraphQLFloat,
-      resolve: json => json['24h_volume_usd']
+      resolve: json => json.quotes.USD.volume_24h,
     },
     marketCapUSD: {
       type: GraphQLFloat,
-      resolve: json => json.market_cap_usd
+      resolve: json => json.quotes.USD.market_cap,
     },
-    availableSupply: {
+    circulatingSupply: {
       type: GraphQLFloat,
-      resolve: json => json.available_supply
+      resolve: json => json.circulating_supply,
     },
     totalSupply: {
       type: GraphQLFloat,
-      resolve: json => json.total_supply
+      resolve: json => json.total_supply,
     },
     percentChange1h: {
       type: GraphQLFloat,
-      resolve: json => json.percent_change_1h
+      resolve: json => json.quotes.USD.percent_change_1h,
     },
     percentChange24h: {
       type: GraphQLFloat,
-      resolve: json => json.percent_change_24h
+      resolve: json => json.quotes.USD.percent_change_24h,
     },
     percentChange7d: {
       type: GraphQLFloat,
-      resolve: json => json.percent_change_7d
+      resolve: json => json.quotes.USD.percent_change_7d,
     },
     lastUpdated: {
       type: GraphQLInt,
-      resolve: json => json.last_updated
-    }
-  }
+      resolve: json => json.last_updated,
+    },
+  },
 })
 
 const GlobalType = new GraphQLObjectType({
@@ -78,29 +78,29 @@ const GlobalType = new GraphQLObjectType({
   fields: {
     totalMarketCapUSD: {
       type: GraphQLFloat,
-      resolve: json => json.total_market_cap_usd
+      resolve: json => json.quotes.USD.total_market_cap,
     },
     total24hVolumeUSD: {
       type: GraphQLFloat,
-      resolve: json => json.total_24h_volume_usd
+      resolve: json => json.quotes.USD.total_volume_24h,
     },
     bitcoinPercentageOfMarketCap: {
       type: GraphQLFloat,
-      resolve: json => json.bitcoin_percentage_of_market_cap
+      resolve: json => json.bitcoin_percentage_of_market_cap,
     },
-    activeCurrencies: {
+    activeCryptocurrencies: {
       type: GraphQLInt,
-      resolve: json => json.active_currencies
-    },
-    activeAssets: {
-      type: GraphQLInt,
-      resolve: json => json.active_assets
+      resolve: json => json.active_cryptocurrencies,
     },
     activeMarkets: {
       type: GraphQLInt,
-      resolve: json => json.active_markets
+      resolve: json => json.active_markets,
+    },
+    lastUpdated: {
+      type: GraphQLInt,
+      resolve: json => json.last_updated
     }
-  }
+  },
 })
 
 const schema = new GraphQLSchema({
@@ -112,30 +112,30 @@ const schema = new GraphQLSchema({
         type: new GraphQLList(TickerType),
         args: {
           limit: { type: GraphQLInt },
-          start: { type: GraphQLInt }
+          start: { type: GraphQLInt },
         },
         resolve: (root, args) => fetch(
-          `https://api.coinmarketcap.com/v1/ticker/?limit=${args.limit || 100}&start=${args.start || 0}`
+          `https://api.coinmarketcap.com/v2/ticker/?limit=${args.limit || 100}&start=${args.start || 0}`,
         )
-          .then(response => response.json())
+          .then(response => response.json().then((res) => Object.keys(res.data).map((key) => res.data[key]))),
       },
       ticker: {
-        type: new GraphQLList(TickerType),
+        type: TickerType,
         args: {
-          id: { type: GraphQLString }
+          id: { type: GraphQLInt },
         },
         resolve: (root, args) => fetch(
-          `https://api.coinmarketcap.com/v1/ticker/${args.id}`
+          `https://api.coinmarketcap.com/v2/ticker/${args.id}/?convert=BTC`,
         )
-          .then(response => response.json())
+          .then(response => response.json().then((res) => res.data)),
       },
       global: {
         type: GlobalType,
-        resolve: () => fetch(`https://api.coinmarketcap.com/v1/global`)
-          .then(response => response.json())
-      }
-    }
-  })
+        resolve: () => fetch(`https://api.coinmarketcap.com/v2/global/?convert=BTC`)
+          .then(response => response.json().then((res) => res.data)),
+      },
+    },
+  }),
 })
 
 module.exports = schema
