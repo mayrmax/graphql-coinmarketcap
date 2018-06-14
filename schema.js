@@ -115,7 +115,7 @@ const schema = new GraphQLSchema({
           start: { type: GraphQLInt },
         },
         resolve: (root, args) => fetch(
-          `https://api.coinmarketcap.com/v2/ticker/?limit=${args.limit || 100}&start=${args.start || 0}`,
+          `https://api.coinmarketcap.com/v2/ticker/?limit=${args.limit || 100}&start=${args.start || 0}&convert=BTC`,
         )
           .then(response => response.json().then((res) => Object.keys(res.data).map((key) => res.data[key]))),
       },
