@@ -35,7 +35,7 @@ const TickerType = new GraphQLObjectType({
     },
     priceBTC: {
       type: GraphQLFloat,
-      resolve: json => json.quotes.USD.price,
+      resolve: json => json.quotes.BTC.price,
     },
     dailyVolumeUSD: {
       type: GraphQLFloat,
@@ -98,8 +98,8 @@ const GlobalType = new GraphQLObjectType({
     },
     lastUpdated: {
       type: GraphQLInt,
-      resolve: json => json.last_updated
-    }
+      resolve: json => json.last_updated,
+    },
   },
 })
 
